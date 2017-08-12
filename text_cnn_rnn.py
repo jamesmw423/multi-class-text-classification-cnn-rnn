@@ -82,6 +82,9 @@ class TextCNNRNN(object):
 			b = tf.Variable(tf.constant(0.1, shape=[num_classes]), name='b')
 			l2_loss += tf.nn.l2_loss(W)
 			l2_loss += tf.nn.l2_loss(b)
+			self.logits = tf.nn.xw_plus_b(output, self.W, b)
+			self.probs = tf.nn.softmax(self.logits)
+			self.probabilities = tf.argmax(self.probs,1,name='probabilities')
 			self.scores = tf.nn.xw_plus_b(output, self.W, b, name='scores')
 			self.predictions = tf.argmax(self.scores, 1, name='predictions')
 
