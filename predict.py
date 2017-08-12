@@ -104,7 +104,9 @@ def predict_unseen_data():
 					cnn_rnn.real_len: real_len(x_batch),
 				}
 				predictions = sess.run([cnn_rnn.predictions], feed_dict)
-				return predictions
+				probs = (sess.run([cnn_rnn.probs], feed_dict))[0]
+				max_probs = [np.max(x) for x in probs]
+				return [predictions,max_probs]
 
 			checkpoint_file = trained_dir + 'best_model.ckpt'
 			saver = tf.train.Saver(tf.all_variables())
@@ -116,11 +118,14 @@ def predict_unseen_data():
 
 			predictions, predict_labels = [], []
 			for x_batch in batches:
-				batch_predictions = predict_step(x_batch)[0]
+				prediction_output = predict_step(x_batch)
+				batch_predictions = prediction_output[0][0]
+				max_probs = prediction_output[1]
 				for batch_prediction in batch_predictions:
 					predictions.append(batch_prediction)
 					predict_labels.append(labels[batch_prediction])
 
+			df['PROBS'] = max_probs
 			df['PREDICTED'] = predict_labels
 			columns = sorted(df.columns, reverse=True)
 			df.to_csv(predicted_dir + 'predictions_all.csv', index=False, columns=columns, sep='|')
